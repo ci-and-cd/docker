@@ -1,6 +1,6 @@
 # Dockerfile to create an environment that contains the Nix package manager.
 
-FROM alpine
+FROM alpine:3.7
 
 # Enable HTTPS support in wget.
 RUN apk add --update openssl
