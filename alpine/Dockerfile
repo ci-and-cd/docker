@@ -19,7 +19,7 @@ RUN set -ex \
   && echo "http://${IMAGE_ARG_ALPINE_MIRROR:-dl-cdn.alpinelinux.org}/alpine/v3.7/main" > /etc/apk/repositories \
   && echo "http://${IMAGE_ARG_ALPINE_MIRROR:-dl-cdn.alpinelinux.org}/alpine/v3.7/community" >> /etc/apk/repositories \
   && echo "http://${IMAGE_ARG_ALPINE_MIRROR:-dl-cdn.alpinelinux.org}/alpine/edge/testing/" >> /etc/apk/repositories \
-  && apk add --update aria2 bash ca-certificates curl openssl shadow sudo wget \
+  && apk add --update aria2 bash ca-certificates curl openssl shadow sudo unzip wget xz \
   && rm -r /var/cache/apk/* \
   && echo ===== Create user ===== \
   && addgroup -g 1000 alpine \
