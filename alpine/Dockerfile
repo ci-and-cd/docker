@@ -34,9 +34,14 @@ ENV HOME=/home/alpine \
 	SHELL=/bin/bash \
 	USER=alpine
 
+
+COPY --chown=alpine:alpine docker /
+
+
 #RUN ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-2.0.4/nix-2.0.4-x86_64-linux.tar.bz2
 # Download Nix and install it into the system.
 RUN set -ex \
+  && sudo chown root:root /etc/profile && sudo chmod 0644 /etc/profile \
   && if [ ! -f nix-2.0.4-x86_64-linux.tar.bz2 ]; then ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-2.0.4/nix-2.0.4-x86_64-linux.tar.bz2; fi \
   && echo "d6db178007014ed47ad5460c1bd5b2cb9403b1ec543a0d6507cb27e15358341f  nix-2.0.4-x86_64-linux.tar.bz2" | sha256sum -c \
   && tar xjf nix-*-x86_64-linux.tar.bz2 \
@@ -45,6 +50,7 @@ RUN set -ex \
   && sudo mkdir -m 0755 /nix && sudo chown alpine:alpine /nix \
   && USER=alpine sudo -E sh nix-*-x86_64-linux/install && sudo chown -R alpine:alpine /nix && sudo chown -R alpine:alpine /home/alpine \
   && sudo ln -s /nix/var/nix/profiles/default/etc/profile.d/nix.sh /etc/profile.d/ \
+  && echo ". /home/alpine/.nix-profile/etc/profile.d/nix.sh" > /home/alpine/.bashrc \
   && echo ". /home/alpine/.nix-profile/etc/profile.d/nix.sh" > /home/alpine/.profile \
   && USER=alpine . /home/alpine/.profile \
   && rm -r nix-*-x86_64-linux*

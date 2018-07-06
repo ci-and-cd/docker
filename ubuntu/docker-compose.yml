@@ -1,0 +1,14 @@
+
+version: '2.1'
+services:
+  #docker-compose build image
+  image:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+      #- IMAGE_ARG_APT_MIRROR=${IMAGE_ARG_APT_MIRROR}
+      - IMAGE_ARG_APT_MIRROR=${IMAGE_ARG_APT_MIRROR:-mirrors.163.com}
+      - IMAGE_ARG_FILESERVER=${IMAGE_ARG_FILESERVER}
+      #- IMAGE_ARG_FILESERVER=${IMAGE_ARG_FILESERVER:-http://o9wbz99tz.bkt.clouddn.com}
+    image: ${IMAGE_PREFIX:-cirepo}/${IMAGE_NAME:-nix}:${IMAGE_TAG:-2.0.4_bionic}
