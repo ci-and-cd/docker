@@ -18,7 +18,7 @@ RUN set -ex \
   && echo ===== Install libs and tools ===== \
   && sed -i "s/http:\/\/archive.ubuntu.com\/ubuntu\//http:\/\/${IMAGE_ARG_APT_MIRROR:-archive.ubuntu.com}\/ubuntu\//g" /etc/apt/sources.list \
   && apt-get update -y \
-  && apt-get install -y aria2 bzip2 ca-certificates curl lzma openssl sudo tar unzip wget xz-utils \
+  && apt-get install -y apt-transport-https apt-utils aria2 bzip2 ca-certificates curl git httpie lsb-release lzma nano openssl software-properties-common sudo tar unzip vim wget xz-utils \
   && apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && rm -f /var/cache/apt/*.bin \
   && echo ===== Create user ===== \
   && groupadd --gid 1000 ubuntu \
