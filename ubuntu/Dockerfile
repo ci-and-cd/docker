@@ -19,7 +19,7 @@ RUN set -ex \
   && sed -i "s/http:\/\/archive.ubuntu.com\/ubuntu\//http:\/\/${IMAGE_ARG_APT_MIRROR:-archive.ubuntu.com}\/ubuntu\//g" /etc/apt/sources.list \
   && apt -y update \
   && apt -y upgrade \
-  && apt -y install apt-transport-https apt-utils aria2 bzip2 ca-certificates curl git httpie jq lsb-release lzma nano openssh-client openssl software-properties-common sudo tar unzip vim wget xz-utils \
+  && apt -y install apt-transport-https apt-utils aria2 bzip2 ca-certificates curl git gnupg2 httpie jq lsb-release lzma nano openssh-client openssl software-properties-common sudo tar unzip vim wget xz-utils \
   && apt -q -y autoremove \
   && apt -q -y clean && rm -rf /var/lib/apt/lists/* && rm -f /var/cache/apt/*.bin \
   && echo ===== Create user ===== \
