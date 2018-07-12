@@ -19,12 +19,13 @@ RUN set -ex \
   && sed -i "s/http:\/\/archive.ubuntu.com\/ubuntu\//http:\/\/${IMAGE_ARG_APT_MIRROR:-archive.ubuntu.com}\/ubuntu\//g" /etc/apt/sources.list \
   && apt -y update \
   && apt -y upgrade \
-  && apt -y install apt-transport-https apt-utils aria2 bzip2 ca-certificates curl git gnupg2 httpie jq lsb-release lzma nano openssh-client openssl software-properties-common sudo tar unzip vim wget xz-utils \
+  && apt -y install apt-transport-https apt-utils aria2 bzip2 ca-certificates curl git gnupg2 httpie jq lsb-release lzma nano openssh-client openssl software-properties-common sudo tar unzip vim wget xz-utils zip \
   && apt -q -y autoremove \
   && apt -q -y clean && rm -rf /var/lib/apt/lists/* && rm -f /var/cache/apt/*.bin \
   && echo ===== Create user ===== \
   && groupadd --gid 1000 ubuntu \
-  && mkdir -p /home/ubuntu && useradd --home-dir /home/ubuntu --shell /bin/bash -g ubuntu --uid 1000 ubuntu && chown -R ubuntu:ubuntu /home/ubuntu \
+  && mkdir -p /home/ubuntu \
+  && useradd -c "ubuntu user" --home-dir /home/ubuntu --shell /bin/bash -g ubuntu -m --uid 1000 ubuntu && chown -R ubuntu:ubuntu /home/ubuntu \
   && usermod -a -G root ubuntu \
   && echo "ubuntu ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/ubuntu \
   && chmod 0440 /etc/sudoers.d/ubuntu
