@@ -21,7 +21,7 @@ RUN set -ex \
   && echo "http://${IMAGE_ARG_ALPINE_MIRROR:-dl-cdn.alpinelinux.org}/alpine/edge/testing/" >> /etc/apk/repositories \
   && apk add --update --upgrade apk-tools \
   && apk upgrade --update \
-  && apk add --update aria2 bash bzip2 ca-certificates curl git gnupg httpie jq nano openssh-client openssl shadow sudo tar unzip vim wget xz \
+  && apk add --update aria2 bash bzip2 ca-certificates curl git gnupg httpie jq nano openssh-client openssl shadow sudo tar unzip vim wget xz zip \
   && rm -r /var/cache/apk/* \
   && echo ===== Create user ===== \
   && addgroup -g 1000 alpine \
@@ -51,6 +51,7 @@ RUN set -ex \
   && for i in $(seq 1 30); do sudo adduser -S -D -h /var/empty -g "Nix build user $i" -u $((30000 + i)) -G nixbld nixbld$i ; done \
   && sudo mkdir -m 0755 /nix && sudo chown alpine:alpine /nix \
   && USER=alpine sudo -E sh nix-*-x86_64-linux/install && sudo chown -R alpine:alpine /nix && sudo chown -R alpine:alpine /home/alpine \
+  && sudo chown root:root /home /etc \
   && sudo ln -s /nix/var/nix/profiles/default/etc/profile.d/nix.sh /etc/profile.d/ \
   && echo ". /home/alpine/.nix-profile/etc/profile.d/nix.sh" > /home/alpine/.bashrc \
   && echo ". /home/alpine/.nix-profile/etc/profile.d/nix.sh" > /home/alpine/.profile \

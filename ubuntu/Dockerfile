@@ -52,6 +52,7 @@ RUN set -ex \
   && for i in $(seq 1 30); do sudo useradd --system --home-dir /var/empty --comment "Nix build user $i" --uid $((30000 + i)) --groups nixbld nixbld$i ; done \
   && sudo mkdir -m 0755 /nix && sudo chown ubuntu:ubuntu /nix \
   && USER=ubuntu sudo -E sh nix-*-x86_64-linux/install && sudo chown -R ubuntu:ubuntu /nix && sudo chown -R ubuntu:ubuntu /home/ubuntu \
+  && sudo chown root:root /home /etc \
   && sudo ln -s /nix/var/nix/profiles/default/etc/profile.d/nix.sh /etc/profile.d/ \
   && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" > /home/ubuntu/.bashrc \
   && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" > /home/ubuntu/.profile \
