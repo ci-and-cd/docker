@@ -4,6 +4,8 @@ FROM ubuntu:18.04
 
 
 ARG IMAGE_ARG_APT_MIRROR
+ARG IMAGE_ARG_NIX_VERSION
+ARG IMAGE_ARG_NIX_DIGEST
 
 
 #${ARIA2C_DOWNLOAD} -d ${out_dir} -o ${out_file} ${url}
@@ -41,23 +43,27 @@ ENV HOME=/home/ubuntu \
 COPY --chown=ubuntu:ubuntu docker /
 
 
-#RUN ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-2.0.4/nix-2.0.4-x86_64-linux.tar.bz2
+#${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-${IMAGE_ARG_NIX_VERSION:-2.0.4}/nix-${IMAGE_ARG_NIX_VERSION:-2.0.4}-x86_64-linux.tar.bz2
+#echo "${IMAGE_ARG_NIX_DIGEST:-d6db178007014ed47ad5460c1bd5b2cb9403b1ec543a0d6507cb27e15358341f}  nix-${IMAGE_ARG_NIX_VERSION:-2.0.4}-x86_64-linux.tar.bz2" | sha256sum -c
 # Download Nix and install it into the system.
 RUN set -ex \
   && sudo chown root:root /etc/profile && sudo chmod 0644 /etc/profile \
-  && if [ ! -f nix-2.0.4-x86_64-linux.tar.bz2 ]; then ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-2.0.4/nix-2.0.4-x86_64-linux.tar.bz2; fi \
-  && echo "d6db178007014ed47ad5460c1bd5b2cb9403b1ec543a0d6507cb27e15358341f  nix-2.0.4-x86_64-linux.tar.bz2" | sha256sum -c \
-  && tar xjf nix-*-x86_64-linux.tar.bz2 \
+  && if [ ! -f nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2 ]; then ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}/nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2; fi \
+  && echo "${IMAGE_ARG_NIX_DIGEST:-ad10b4da69035a585fe89d7330037c4a5d867a372bb0e52a1542ab95aec67999}  nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2" | sha256sum -c \
+  && tar xjf nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2 \
   && sudo groupadd --gid 30000 --system nixbld \
   && for i in $(seq 1 30); do sudo useradd --system --home-dir /var/empty --comment "Nix build user $i" --uid $((30000 + i)) --groups nixbld nixbld$i ; done \
   && sudo mkdir -m 0755 /nix && sudo chown ubuntu:ubuntu /nix \
   && USER=ubuntu sudo -E sh nix-*-x86_64-linux/install && sudo chown -R ubuntu:ubuntu /nix && sudo chown -R ubuntu:ubuntu /home/ubuntu \
   && sudo chown root:root /home /etc \
   && sudo ln -s /nix/var/nix/profiles/default/etc/profile.d/nix.sh /etc/profile.d/ \
-  && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" > /home/ubuntu/.bashrc \
-  && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" > /home/ubuntu/.profile \
+  && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/ubuntu/.bashrc \
+  && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/ubuntu/.profile \
   && USER=ubuntu . /home/ubuntu/.profile \
-  && rm -r nix-*-x86_64-linux*
+  && rm -r nix-*-x86_64-linux* \
+  && sudo chown 0 /nix/var/nix/profiles/per-user/root \
+  && sudo chown 0 /nix/var/nix/gcroots/per-user/root \
+  && sudo su - root sh -c 'exit'
 #USER=root sh nix-*-x86_64-linux/install
 
 ONBUILD ENV \
