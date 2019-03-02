@@ -11,4 +11,4 @@ services:
       - IMAGE_ARG_ALPINE_MIRROR=${IMAGE_ARG_ALPINE_MIRROR:-mirror.tuna.tsinghua.edu.cn}
       - IMAGE_ARG_FILESERVER=${IMAGE_ARG_FILESERVER}
       #- IMAGE_ARG_FILESERVER=${IMAGE_ARG_FILESERVER:-http://fileserver.infra.top}
-    image: ${IMAGE_PREFIX:-cirepo/}${IMAGE_NAME:-nix}:${IMAGE_TAG:-2.1.1-alpine-3.8}
+    image: ${IMAGE_PREFIX:-cirepo/}${IMAGE_NAME:-nix}:${IMAGE_TAG:-2.2.1-alpine-3.9}

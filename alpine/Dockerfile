@@ -1,6 +1,6 @@
 # Dockerfile to create an environment that contains the Nix package manager.
 
-FROM alpine:3.8
+FROM alpine:3.9
 
 
 ARG IMAGE_ARG_ALPINE_MIRROR
@@ -18,8 +18,8 @@ ENV ARIA2C_DOWNLOAD aria2c --file-allocation=none -c -x 10 -s 10 -m 0 --console-
 # Install openssl to enable HTTPS support in wget.
 RUN set -ex \
   && echo ===== Install libs and tools ===== \
-  && echo "http://${IMAGE_ARG_ALPINE_MIRROR:-dl-cdn.alpinelinux.org}/alpine/v3.8/main" > /etc/apk/repositories \
-  && echo "http://${IMAGE_ARG_ALPINE_MIRROR:-dl-cdn.alpinelinux.org}/alpine/v3.8/community" >> /etc/apk/repositories \
+  && echo "http://${IMAGE_ARG_ALPINE_MIRROR:-dl-cdn.alpinelinux.org}/alpine/v3.9/main" > /etc/apk/repositories \
+  && echo "http://${IMAGE_ARG_ALPINE_MIRROR:-dl-cdn.alpinelinux.org}/alpine/v3.9/community" >> /etc/apk/repositories \
   && echo "http://${IMAGE_ARG_ALPINE_MIRROR:-dl-cdn.alpinelinux.org}/alpine/edge/testing/" >> /etc/apk/repositories \
   && apk add --update --upgrade apk-tools \
   && apk upgrade --update \
@@ -48,11 +48,13 @@ COPY --chown=alpine:alpine docker /
 # Download Nix and install it into the system.
 RUN set -ex \
   && sudo chown root:root /etc/profile && sudo chmod 0644 /etc/profile \
-  && if [ ! -f nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2 ]; then ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}/nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2; fi \
-  && echo "${IMAGE_ARG_NIX_DIGEST:-ad10b4da69035a585fe89d7330037c4a5d867a372bb0e52a1542ab95aec67999}  nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2" | sha256sum -c \
-  && tar xjf nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2 \
+  && if [ ! -f nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2 ]; then ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}/nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2; fi \
+  && echo "${IMAGE_ARG_NIX_DIGEST:-e229e28f250cad684c278c9007b07a24eb4ead239280c237ed2245871eca79e0}  nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2" | sha256sum -c \
+  && tar xjf nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2 \
   && sudo addgroup -g 30000 -S nixbld \
   && for i in $(seq 1 30); do sudo adduser -S -D -h /var/empty -g "Nix build user $i" -u $((30000 + i)) -G nixbld nixbld$i ; done \
+  && sudo mkdir -m 0755 /etc/nix \
+  && echo 'sandbox = false' | sudo tee /etc/nix/nix.conf \
   && sudo mkdir -m 0755 /nix && sudo chown alpine:alpine /nix \
   && USER=alpine sudo -E sh nix-*-x86_64-linux/install && sudo chown -R alpine:alpine /nix && sudo chown -R alpine:alpine /home/alpine \
   && sudo chown root:root /home /etc \
@@ -63,7 +65,10 @@ RUN set -ex \
   && rm -r nix-*-x86_64-linux* \
   && sudo chown 0 /nix/var/nix/profiles/per-user/root \
   && sudo chown 0 /nix/var/nix/gcroots/per-user/root \
-  && sudo su - root sh -c 'exit'
+  && sudo su - root sh -c 'exit' \
+  && /nix/var/nix/profiles/default/bin/nix-collect-garbage --delete-old \
+  && /nix/var/nix/profiles/default/bin/nix-store --optimise \
+  && /nix/var/nix/profiles/default/bin/nix-store --verify --check-contents
 #USER=root sh nix-*-x86_64-linux/install
 
 ONBUILD ENV \

@@ -48,11 +48,13 @@ COPY --chown=ubuntu:ubuntu docker /
 # Download Nix and install it into the system.
 RUN set -ex \
   && sudo chown root:root /etc/profile && sudo chmod 0644 /etc/profile \
-  && if [ ! -f nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2 ]; then ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}/nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2; fi \
-  && echo "${IMAGE_ARG_NIX_DIGEST:-ad10b4da69035a585fe89d7330037c4a5d867a372bb0e52a1542ab95aec67999}  nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2" | sha256sum -c \
-  && tar xjf nix-${IMAGE_ARG_NIX_VERSION:-2.1.1}-x86_64-linux.tar.bz2 \
+  && if [ ! -f nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2 ]; then ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}/nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2; fi \
+  && echo "${IMAGE_ARG_NIX_DIGEST:-e229e28f250cad684c278c9007b07a24eb4ead239280c237ed2245871eca79e0}  nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2" | sha256sum -c \
+  && tar xjf nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2 \
   && sudo groupadd --gid 30000 --system nixbld \
   && for i in $(seq 1 30); do sudo useradd --system --home-dir /var/empty --comment "Nix build user $i" --uid $((30000 + i)) --groups nixbld nixbld$i ; done \
+  && sudo mkdir -m 0755 /etc/nix \
+  && echo 'sandbox = false' | sudo tee /etc/nix/nix.conf \
   && sudo mkdir -m 0755 /nix && sudo chown ubuntu:ubuntu /nix \
   && USER=ubuntu sudo -E sh nix-*-x86_64-linux/install && sudo chown -R ubuntu:ubuntu /nix && sudo chown -R ubuntu:ubuntu /home/ubuntu \
   && sudo chown root:root /home /etc \
@@ -63,7 +65,10 @@ RUN set -ex \
   && rm -r nix-*-x86_64-linux* \
   && sudo chown 0 /nix/var/nix/profiles/per-user/root \
   && sudo chown 0 /nix/var/nix/gcroots/per-user/root \
-  && sudo su - root sh -c 'exit'
+  && sudo su - root sh -c 'exit' \
+  && /nix/var/nix/profiles/default/bin/nix-collect-garbage --delete-old \
+  && /nix/var/nix/profiles/default/bin/nix-store --optimise \
+  && /nix/var/nix/profiles/default/bin/nix-store --verify --check-contents
 #USER=root sh nix-*-x86_64-linux/install
 
 ONBUILD ENV \
