@@ -24,6 +24,7 @@ RUN set -ex \
   && apk add --update --upgrade apk-tools \
   && apk upgrade --update \
   && apk add --update aria2 bash bzip2 ca-certificates curl git gnupg httpie jq nano openssh-client openssl shadow sudo tar unzip vim wget xz zip \
+  && apk add --update bc perf procps strace \
   && rm -r /var/cache/apk/* \
   && echo ===== Create user ===== \
   && addgroup -g 1000 alpine \
@@ -42,6 +43,7 @@ ENV HOME=/home/alpine \
 
 COPY --chown=alpine:alpine docker /
 
+# see: https://github.com/nix-community/docker-nix/blob/master/Dockerfile
 
 #${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-${IMAGE_ARG_NIX_VERSION:-2.0.4}/nix-${IMAGE_ARG_NIX_VERSION:-2.0.4}-x86_64-linux.tar.bz2
 #echo "${IMAGE_ARG_NIX_DIGEST:-d6db178007014ed47ad5460c1bd5b2cb9403b1ec543a0d6507cb27e15358341f}  nix-${IMAGE_ARG_NIX_VERSION:-2.0.4}-x86_64-linux.tar.bz2" | sha256sum -c
@@ -62,6 +64,16 @@ RUN set -ex \
   && echo ". /home/alpine/.nix-profile/etc/profile.d/nix.sh" > /home/alpine/.bashrc \
   && echo ". /home/alpine/.nix-profile/etc/profile.d/nix.sh" > /home/alpine/.profile \
   && USER=alpine . /home/alpine/.profile \
+  && nix-env -iA \
+       nixpkgs.bashInteractive \
+       nixpkgs.cacert \
+       nixpkgs.coreutils \
+       nixpkgs.gitMinimal \
+       nixpkgs.gnutar \
+       nixpkgs.gzip \
+       nixpkgs.iana-etc \
+       nixpkgs.xz \
+  && true \
   && rm -r nix-*-x86_64-linux* \
   && sudo chown 0 /nix/var/nix/profiles/per-user/root \
   && sudo chown 0 /nix/var/nix/gcroots/per-user/root \
@@ -70,6 +82,14 @@ RUN set -ex \
   && /nix/var/nix/profiles/default/bin/nix-store --optimise \
   && /nix/var/nix/profiles/default/bin/nix-store --verify --check-contents
 #USER=root sh nix-*-x86_64-linux/install
+
+# nixpkgs.cacert fixes following issue
+# fatal: unable to access 'https://github.com/owner/repo.git/': error setting certificate verify locations:
+#   CAfile: /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
+#   CApath: none
+RUN set -ex \
+  && sudo git config --system http.sslcainfo /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt \
+  && sudo git config --global http.sslverify "false"
 
 ONBUILD ENV \
     ENV=/etc/profile \
