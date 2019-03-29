@@ -43,6 +43,7 @@ ENV HOME=/home/alpine \
 
 COPY --chown=alpine:alpine docker /
 
+# see: https://github.com/NixOS/docker/blob/master/Dockerfile
 # see: https://github.com/nix-community/docker-nix/blob/master/Dockerfile
 
 #${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-${IMAGE_ARG_NIX_VERSION:-2.0.4}/nix-${IMAGE_ARG_NIX_VERSION:-2.0.4}-x86_64-linux.tar.bz2
@@ -57,6 +58,8 @@ RUN set -ex \
   && for i in $(seq 1 30); do sudo adduser -S -D -h /var/empty -g "Nix build user $i" -u $((30000 + i)) -G nixbld nixbld$i ; done \
   && sudo mkdir -m 0755 /etc/nix \
   && echo 'sandbox = false' | sudo tee /etc/nix/nix.conf \
+  && mkdir -p /home/alpine/.config/nix && echo 'sandbox = false' | tee /home/alpine/.config/nix/nix.fonf \
+  && sudo mkdir -p /root/.config/nix && echo 'sandbox = false' | sudo tee /root/.config/nix/nix.fonf \
   && sudo mkdir -m 0755 /nix && sudo chown alpine:alpine /nix \
   && USER=alpine sudo -E sh nix-*-x86_64-linux/install && sudo chown -R alpine:alpine /nix && sudo chown -R alpine:alpine /home/alpine \
   && sudo chown root:root /home /etc \
@@ -81,7 +84,10 @@ RUN set -ex \
   && /nix/var/nix/profiles/default/bin/nix-collect-garbage --delete-old \
   && /nix/var/nix/profiles/default/bin/nix-store --optimise \
   && /nix/var/nix/profiles/default/bin/nix-store --verify --check-contents
-#USER=root sh nix-*-x86_64-linux/install
+  && if [ ! -L /nix/var/nix/profiles/default/etc/ssl ]; then \
+       ln -s $(find /nix/store -type d -name "*nss-cacert*")/etc/ssl /nix/var/nix/profiles/default/etc/ssl; \
+       sudo chown -h alpine:alpine /nix/var/nix/profiles/default/etc/ssl; \
+     fi
 
 # nixpkgs.cacert fixes following issue
 # fatal: unable to access 'https://github.com/owner/repo.git/': error setting certificate verify locations:

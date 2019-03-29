@@ -1,9 +1,9 @@
 # Dockerfile to create an environment that contains the Nix package manager.
 
-FROM ubuntu:18.04
+FROM centos:7.6.1810
 
 
-ARG IMAGE_ARG_APT_MIRROR
+
 ARG IMAGE_ARG_NIX_VERSION
 ARG IMAGE_ARG_NIX_DIGEST
 
@@ -18,30 +18,30 @@ ENV ARIA2C_DOWNLOAD aria2c --file-allocation=none -c -x 10 -s 10 -m 0 --console-
 # Install openssl to enable HTTPS support in wget.
 RUN set -ex \
   && echo ===== Install libs and tools ===== \
-  && sed -i "s/http:\/\/archive.ubuntu.com\/ubuntu\//http:\/\/${IMAGE_ARG_APT_MIRROR:-archive.ubuntu.com}\/ubuntu\//g" /etc/apt/sources.list \
-  && apt -y update \
-  && apt -y upgrade \
-  && apt -y install apt-transport-https apt-utils aria2 bzip2 ca-certificates curl git gnupg2 httpie jq lsb-release lzma nano openssh-client openssl software-properties-common sudo tar unzip vim wget xz-utils zip \
-  && apt -y install bc dnsutils linux-tools-common net-tools socat strace telnet tcpdump \
-  && apt -q -y autoremove \
-  && apt -q -y clean && rm -rf /var/lib/apt/lists/* && rm -f /var/cache/apt/*.bin \
+  && echo 'yum can find best mirror automatically' \
+  && echo 'yum update also do upgrade' && yum -y update \
+  && yum install -y epel-release && yum -y update \
+  && yum -y install aria2 bzip2 ca-certificates curl git gnupg2 httpie jq redhat-lsb-core lzma nano openssh-clients openssl sudo tar unzip vim wget xz zip \
+  && yum -y install bc bind-utils linux-tools-common net-tools socat strace telnet tcpdump \
+  && yum -y autoremove \
+  && yum -y clean all \
   && echo ===== Create user ===== \
-  && groupadd --gid 1000 ubuntu \
-  && mkdir -p /home/ubuntu \
-  && useradd -c "ubuntu user" --home-dir /home/ubuntu --shell /bin/bash -g ubuntu -m --uid 1000 ubuntu && chown -R ubuntu:ubuntu /home/ubuntu \
-  && usermod -a -G root ubuntu \
-  && echo "ubuntu ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/ubuntu \
-  && chmod 0440 /etc/sudoers.d/ubuntu
+  && groupadd --gid 1000 centos \
+  && echo 'create home directory manually will prevent os copying any file from skel directory into it' \
+  && useradd -c "centos user" --home-dir /home/centos --shell /bin/bash -g centos -m --uid 1000 centos && chown -R centos:centos /home/centos \
+  && usermod -a -G root centos \
+  && echo "centos ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/centos \
+  && chmod 0440 /etc/sudoers.d/centos
 
 
-WORKDIR /home/ubuntu
-USER    ubuntu
-ENV HOME=/home/ubuntu \
+WORKDIR /home/centos
+USER    centos
+ENV HOME=/home/centos \
 	SHELL=/bin/bash \
-	USER=ubuntu
+	USER=centos
 
 
-COPY --chown=ubuntu:ubuntu docker /
+COPY --chown=centos:centos docker /
 
 # see: https://github.com/NixOS/docker/blob/master/Dockerfile
 # see: https://github.com/nix-community/docker-nix/blob/master/Dockerfile
@@ -58,15 +58,15 @@ RUN set -ex \
   && for i in $(seq 1 30); do sudo useradd --system --home-dir /var/empty --comment "Nix build user $i" --uid $((30000 + i)) --groups nixbld nixbld$i ; done \
   && sudo mkdir -m 0755 /etc/nix \
   && echo 'sandbox = false' | sudo tee /etc/nix/nix.conf \
-  && mkdir -p /home/ubuntu/.config/nix && echo 'sandbox = false' | tee /home/ubuntu/.config/nix/nix.fonf \
+  && mkdir -p /home/centos/.config/nix && echo 'sandbox = false' | tee /home/centos/.config/nix/nix.fonf \
   && sudo mkdir -p /root/.config/nix && echo 'sandbox = false' | sudo tee /root/.config/nix/nix.fonf \
-  && sudo mkdir -m 0755 /nix && sudo chown ubuntu:ubuntu /nix \
-  && USER=ubuntu sudo -E sh nix-*-x86_64-linux/install && sudo chown -R ubuntu:ubuntu /nix && sudo chown -R ubuntu:ubuntu /home/ubuntu \
+  && sudo mkdir -m 0755 /nix && sudo chown centos:centos /nix \
+  && nix-*-x86_64-linux/install && sudo nix-*-x86_64-linux/install && sudo chown -R centos:centos /nix && sudo chown -R centos:centos /home/centos \
   && sudo chown root:root /home /etc \
   && sudo ln -s /nix/var/nix/profiles/default/etc/profile.d/nix.sh /etc/profile.d/ \
-  && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/ubuntu/.bashrc \
-  && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/ubuntu/.profile \
-  && USER=ubuntu . /home/ubuntu/.profile \
+  && echo ". /home/centos/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/centos/.bashrc \
+  && echo ". /home/centos/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/centos/.profile \
+  && USER=centos . /home/centos/.profile \
   && nix-env -iA \
        nixpkgs.bashInteractive \
        nixpkgs.cacert \
@@ -83,10 +83,10 @@ RUN set -ex \
   && sudo su - root sh -c 'exit' \
   && /nix/var/nix/profiles/default/bin/nix-collect-garbage --delete-old \
   && /nix/var/nix/profiles/default/bin/nix-store --optimise \
-  && /nix/var/nix/profiles/default/bin/nix-store --verify --check-contents
+  && /nix/var/nix/profiles/default/bin/nix-store --verify --check-contents \
   && if [ ! -L /nix/var/nix/profiles/default/etc/ssl ]; then \
-       ln -s $(find /nix/store -type d -name "*nss-cacert*")/etc/ssl /nix/var/nix/profiles/default/etc/ssl; \
-       sudo chown -h ubuntu:ubuntu /nix/var/nix/profiles/default/etc/ssl; \
+       sudo ln -s $(find /nix/store -type d -name "*nss-cacert*")/etc/ssl /nix/var/nix/profiles/default/etc/ssl; \
+       sudo chown -h centos:centos /nix/var/nix/profiles/default/etc/ssl; \
      fi
 
 # nixpkgs.cacert fixes following issue
@@ -99,15 +99,15 @@ RUN set -ex \
 
 ONBUILD ENV \
     ENV=/etc/profile \
-    USER=ubuntu \
+    USER=centos \
     PATH=/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/default/sbin:/bin:/sbin:/usr/bin:/usr/sbin \
     GIT_SSL_CAINFO=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt \
     NIX_SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
 
 ENV \
     ENV=/etc/profile \
-    USER=ubuntu \
+    USER=centos \
     PATH=/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/default/sbin:/bin:/sbin:/usr/bin:/usr/sbin \
     GIT_SSL_CAINFO=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt \
     NIX_SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt \
-    NIX_PATH=/nix/var/nix/profiles/per-user/ubuntu/channels
+    NIX_PATH=/nix/var/nix/profiles/per-user/centos/channels
