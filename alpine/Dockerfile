@@ -24,7 +24,7 @@ RUN set -ex \
   && apk add --update --upgrade apk-tools \
   && apk upgrade --update \
   && apk add --update aria2 bash bzip2 ca-certificates curl git gnupg httpie jq nano openssh-client openssl shadow sudo tar unzip vim wget xz zip \
-  && apk add --update bc perf procps strace \
+  && apk add --update bc iproute2 perf procps strace \
   && rm -r /var/cache/apk/* \
   && echo ===== Create user ===== \
   && addgroup -g 1000 alpine \

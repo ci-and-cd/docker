@@ -22,7 +22,7 @@ RUN set -ex \
   && echo 'yum update also do upgrade' && yum -y update \
   && yum install -y epel-release && yum -y update \
   && yum -y install aria2 bzip2 ca-certificates curl git gnupg2 httpie jq redhat-lsb-core lzma nano openssh-clients openssl sudo tar unzip vim wget xz zip \
-  && yum -y install bc bind-utils linux-tools-common net-tools socat strace telnet tcpdump \
+  && yum -y install bc bind-utils iproute iproute-doc linux-tools-common net-tools socat strace telnet tcpdump \
   && yum -y autoremove \
   && yum -y clean all \
   && echo ===== Create user ===== \
