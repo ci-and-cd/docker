@@ -83,7 +83,7 @@ RUN set -ex \
   && sudo su - root sh -c 'exit' \
   && /nix/var/nix/profiles/default/bin/nix-collect-garbage --delete-old \
   && /nix/var/nix/profiles/default/bin/nix-store --optimise \
-  && /nix/var/nix/profiles/default/bin/nix-store --verify --check-contents
+  && /nix/var/nix/profiles/default/bin/nix-store --verify --check-contents \
   && if [ ! -L /nix/var/nix/profiles/default/etc/ssl ]; then \
        ln -s $(find /nix/store -type d -name "*nss-cacert*")/etc/ssl /nix/var/nix/profiles/default/etc/ssl; \
        sudo chown -h alpine:alpine /nix/var/nix/profiles/default/etc/ssl; \
