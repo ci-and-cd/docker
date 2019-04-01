@@ -1,6 +1,6 @@
 # Dockerfile to create an environment that contains the Nix package manager.
 
-FROM centos:7.6.1810
+FROM fedora:29
 
 
 
@@ -18,30 +18,30 @@ ENV ARIA2C_DOWNLOAD aria2c --file-allocation=none -c -x 10 -s 10 -m 0 --console-
 # Install openssl to enable HTTPS support in wget.
 RUN set -ex \
   && echo ===== Install libs and tools ===== \
-  && echo 'yum can find best mirror automatically' \
-  && echo 'yum update also do upgrade' && yum -y update \
-  && yum install -y epel-release && yum -y update \
-  && yum -y install aria2 bzip2 ca-certificates curl git gnupg2 httpie jq redhat-lsb-core lzma nano openssh-clients openssl sudo tar unzip vim wget xz zip \
-  && yum -y install bc bind-utils gawk iproute iproute-doc net-tools perf socat strace telnet tcpdump \
-  && yum -y autoremove \
-  && yum -y clean all \
+  && echo 'dnf can find best mirror automatically' \
+  && echo 'dnf update also do upgrade' \
+  && dnf -y update \
+  && dnf -y install aria2 bzip2 ca-certificates curl git gnupg2 httpie jq redhat-lsb-core lzma nano openssh-clients openssl sudo tar unzip vim wget xz zip \
+  && dnf -y install bc bind-utils gawk iproute iproute-doc net-tools perf socat strace telnet tcpdump \
+  && dnf -y autoremove \
+  && dnf -y clean all \
   && echo ===== Create user ===== \
-  && groupadd --gid 1000 centos \
+  && groupadd --gid 1000 fedora \
   && echo 'create home directory manually will prevent os copying any file from skel directory into it' \
-  && useradd -c "centos user" --home-dir /home/centos --shell /bin/bash -g centos -m --uid 1000 centos && chown -R centos:centos /home/centos \
-  && usermod -a -G root centos \
-  && echo "centos ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/centos \
-  && chmod 0440 /etc/sudoers.d/centos
+  && useradd -c "fedora user" --home-dir /home/fedora --shell /bin/bash -g fedora -m --uid 1000 fedora && chown -R fedora:fedora /home/fedora \
+  && usermod -a -G root fedora \
+  && echo "fedora ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/fedora \
+  && chmod 0440 /etc/sudoers.d/fedora
 
 
-WORKDIR /home/centos
-USER    centos
-ENV HOME=/home/centos \
+WORKDIR /home/fedora
+USER    fedora
+ENV HOME=/home/fedora \
 	SHELL=/bin/bash \
-	USER=centos
+	USER=fedora
 
 
-COPY --chown=centos:centos docker /
+COPY --chown=fedora:fedora docker /
 
 # see: https://github.com/NixOS/docker/blob/master/Dockerfile
 # see: https://github.com/nix-community/docker-nix/blob/master/Dockerfile
@@ -58,15 +58,15 @@ RUN set -ex \
   && for i in $(seq 1 30); do sudo useradd --system --home-dir /var/empty --comment "Nix build user $i" --uid $((30000 + i)) --groups nixbld nixbld$i ; done \
   && sudo mkdir -m 0755 /etc/nix \
   && echo 'sandbox = false' | sudo tee /etc/nix/nix.conf \
-  && mkdir -p /home/centos/.config/nix && echo 'sandbox = false' | tee /home/centos/.config/nix/nix.fonf \
+  && mkdir -p /home/fedora/.config/nix && echo 'sandbox = false' | tee /home/fedora/.config/nix/nix.fonf \
   && sudo mkdir -p /root/.config/nix && echo 'sandbox = false' | sudo tee /root/.config/nix/nix.fonf \
-  && sudo mkdir -m 0755 /nix && sudo chown centos:centos /nix \
-  && nix-*-x86_64-linux/install && sudo nix-*-x86_64-linux/install && sudo chown -R centos:centos /nix && sudo chown -R centos:centos /home/centos \
+  && sudo mkdir -m 0755 /nix && sudo chown fedora:fedora /nix \
+  && nix-*-x86_64-linux/install && sudo nix-*-x86_64-linux/install && sudo chown -R fedora:fedora /nix && sudo chown -R fedora:fedora /home/fedora \
   && sudo chown root:root /home /etc \
   && sudo ln -s /nix/var/nix/profiles/default/etc/profile.d/nix.sh /etc/profile.d/ \
-  && echo ". /home/centos/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/centos/.bashrc \
-  && echo ". /home/centos/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/centos/.profile \
-  && USER=centos . /home/centos/.profile \
+  && echo ". /home/fedora/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/fedora/.bashrc \
+  && echo ". /home/fedora/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/fedora/.profile \
+  && USER=fedora . /home/fedora/.profile \
   && nix-env -iA \
        nixpkgs.bashInteractive \
        nixpkgs.cacert \
@@ -86,7 +86,7 @@ RUN set -ex \
   && /nix/var/nix/profiles/default/bin/nix-store --verify --check-contents \
   && if [ ! -L /nix/var/nix/profiles/default/etc/ssl ]; then \
        sudo ln -s $(find /nix/store -type d -name "*nss-cacert*")/etc/ssl /nix/var/nix/profiles/default/etc/ssl; \
-       sudo chown -h centos:centos /nix/var/nix/profiles/default/etc/ssl; \
+       sudo chown -h fedora:fedora /nix/var/nix/profiles/default/etc/ssl; \
      fi
 
 # nixpkgs.cacert fixes following issue
@@ -99,15 +99,15 @@ RUN set -ex \
 
 ONBUILD ENV \
     ENV=/etc/profile \
-    USER=centos \
+    USER=fedora \
     PATH=/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/default/sbin:/bin:/sbin:/usr/bin:/usr/sbin \
     GIT_SSL_CAINFO=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt \
     NIX_SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
 
 ENV \
     ENV=/etc/profile \
-    USER=centos \
+    USER=fedora \
     PATH=/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/default/sbin:/bin:/sbin:/usr/bin:/usr/sbin \
     GIT_SSL_CAINFO=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt \
     NIX_SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt \
-    NIX_PATH=/nix/var/nix/profiles/per-user/centos/channels
+    NIX_PATH=/nix/var/nix/profiles/per-user/fedora/channels

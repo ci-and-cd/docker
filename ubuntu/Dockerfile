@@ -22,7 +22,7 @@ RUN set -ex \
   && apt -y update \
   && apt -y upgrade \
   && apt -y install apt-transport-https apt-utils aria2 bzip2 ca-certificates curl git gnupg2 httpie jq lsb-release lzma nano openssh-client openssl software-properties-common sudo tar unzip vim wget xz-utils zip \
-  && apt -y install bc dnsutils iproute2 iproute2-doc linux-tools-common net-tools socat strace telnet tcpdump \
+  && apt -y install bc dnsutils gawk iproute2 iproute2-doc linux-tools-common net-tools socat strace telnet tcpdump \
   && apt -q -y autoremove \
   && apt -q -y clean && rm -rf /var/lib/apt/lists/* && rm -f /var/cache/apt/*.bin \
   && echo ===== Create user ===== \
