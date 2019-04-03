@@ -1,6 +1,6 @@
 # Dockerfile to create an environment that contains the Nix package manager.
 
-FROM fedora:29
+FROM fedora:27
 
 
 
