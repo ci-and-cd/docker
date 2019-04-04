@@ -22,7 +22,7 @@ RUN set -ex \
   && echo 'dnf update also do upgrade' \
   && dnf -y update \
   && dnf -y install aria2 bzip2 ca-certificates curl git gnupg2 httpie jq redhat-lsb-core lzma nano openssh-clients openssl sudo tar unzip vim wget xz zip \
-  && dnf -y install bc bind-utils gawk iproute iproute-doc net-tools perf socat strace telnet tcpdump \
+  && dnf -y install bc bind-utils gawk iproute iproute-doc net-tools perf procps socat strace telnet tcpdump \
   && dnf -y autoremove \
   && dnf -y clean all \
   && echo ===== Create user ===== \
