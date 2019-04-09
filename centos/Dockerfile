@@ -53,7 +53,7 @@ RUN set -ex \
   && sudo chown root:root /etc/profile && sudo chmod 0644 /etc/profile \
   && if [ ! -f nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2 ]; then ${ARIA2C_DOWNLOAD} https://nixos.org/releases/nix/nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}/nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2; fi \
   && echo "${IMAGE_ARG_NIX_DIGEST:-e229e28f250cad684c278c9007b07a24eb4ead239280c237ed2245871eca79e0}  nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2" | sha256sum -c \
-  && tar xjf nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2 \
+  && tar xjf nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2 && rm -f nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux.tar.bz2 \
   && sudo groupadd --gid 30000 --system nixbld \
   && for i in $(seq 1 30); do sudo useradd --system --home-dir /var/empty --comment "Nix build user $i" --uid $((30000 + i)) --groups nixbld nixbld$i ; done \
   && sudo mkdir -m 0755 /etc/nix \
@@ -61,7 +61,9 @@ RUN set -ex \
   && mkdir -p /home/centos/.config/nix && echo 'sandbox = false' | tee /home/centos/.config/nix/nix.fonf \
   && sudo mkdir -p /root/.config/nix && echo 'sandbox = false' | sudo tee /root/.config/nix/nix.fonf \
   && sudo mkdir -m 0755 /nix && sudo chown centos:centos /nix \
-  && nix-*-x86_64-linux/install && sudo nix-*-x86_64-linux/install && sudo chown -R centos:centos /nix && sudo chown -R centos:centos /home/centos \
+  && nix-*-x86_64-linux/install \
+  && sudo mv nix-*-x86_64-linux /root/ && sudo bash -c "cd /root && nix-*-x86_64-linux/install" \
+  && sudo chown -R centos:centos /nix && sudo chown -R centos:centos /home/centos \
   && sudo chown root:root /home /etc \
   && sudo ln -s /nix/var/nix/profiles/default/etc/profile.d/nix.sh /etc/profile.d/ \
   && echo ". /home/centos/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/centos/.bashrc \
@@ -77,7 +79,7 @@ RUN set -ex \
        nixpkgs.iana-etc \
        nixpkgs.xz \
   && true \
-  && rm -r nix-*-x86_64-linux* \
+  && sudo rm -fr /root/nix-*-x86_64-linux* \
   && sudo chown 0 /nix/var/nix/profiles/per-user/root \
   && sudo chown 0 /nix/var/nix/gcroots/per-user/root \
   && sudo su - root sh -c 'exit' \

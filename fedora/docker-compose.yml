@@ -9,4 +9,4 @@ services:
       args:
       - IMAGE_ARG_FILESERVER=${IMAGE_ARG_FILESERVER}
       #- IMAGE_ARG_FILESERVER=${IMAGE_ARG_FILESERVER:-http://fileserver.infra.top}
-    image: ${IMAGE_PREFIX:-cirepo/}${IMAGE_NAME:-nix}:${IMAGE_TAG:-2.2.1-fedora-27}
+    image: ${IMAGE_PREFIX:-cirepo/}${IMAGE_NAME:-nix}:${IMAGE_TAG:-2.2.1-fedora-29}
