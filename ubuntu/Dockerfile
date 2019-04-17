@@ -33,7 +33,7 @@ RUN set -ex \
   && mkdir -p /home/ubuntu \
   && useradd -c "ubuntu user" --home-dir /home/ubuntu --shell /bin/bash -g ubuntu -m --uid 1000 ubuntu && chown -R ubuntu:ubuntu /home/ubuntu \
   && usermod -a -G root ubuntu \
-  && echo "if [ -f ~/.bashrc ]; then . ~/.bashrc; fi" | tee -a /root/.bash_profile \
+  && echo 'if [ "$BASH" ]; then if [ -f ~/.bashrc ]; then . ~/.bashrc; fi; fi' | tee -a /root/.bash_profile \
   && cp /root/.profile /home/ubuntu/.profile \
   && cp /root/.bashrc /home/ubuntu/.bashrc \
   && cp /root/.bash_profile /home/ubuntu/.bash_profile \
@@ -76,6 +76,7 @@ RUN set -ex \
   && sudo chown -R ubuntu:ubuntu /nix && sudo chown -R ubuntu:ubuntu /home/ubuntu \
   && sudo chown root:root /home /etc \
   && sudo ln -s /nix/var/nix/profiles/default/etc/profile.d/nix.sh /etc/profile.d/ \
+# ~/.bash_profile is updated by nix installer
   && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/ubuntu/.bashrc \
   && echo ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh" | tee -a /home/ubuntu/.profile \
   && USER=ubuntu . /home/ubuntu/.profile \
