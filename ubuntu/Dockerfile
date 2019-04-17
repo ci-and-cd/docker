@@ -71,7 +71,7 @@ RUN set -ex \
   && touch /home/ubuntu/.bash_profile && USER=ubuntu sudo -E nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux/install \
   && sudo mv nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux /root/ \
   && sudo bash -c "cd /root; nix-${IMAGE_ARG_NIX_VERSION:-2.2.1}-x86_64-linux/install" \
-  && printf 'if [ -e /root/.nix-profile/etc/profile.d/nix.sh ]; then . /root/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer\n' | sudo tee /root/.bash_profile \
+  && printf 'if [ -e /root/.nix-profile/etc/profile.d/nix.sh ]; then . /root/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer\n' | sudo tee -a /root/.bash_profile \
   && sudo mkdir -p /root/.nix-defexpr && sudo ln -s /nix/var/nix/profiles/per-user/root/channels /root/.nix-defexpr/channels \
   && sudo chown -R ubuntu:ubuntu /nix && sudo chown -R ubuntu:ubuntu /home/ubuntu \
   && sudo chown root:root /home /etc \
