@@ -14,6 +14,9 @@ ARG IMAGE_ARG_NIX_DIGEST
 ENV ARIA2C_DOWNLOAD aria2c --file-allocation=none -c -x 10 -s 10 -m 0 --console-log-level=notice --log-level=notice --summary-interval=0
 
 
+COPY --chown=root:root docker/etc /etc/
+COPY --chown=root:root docker/root /root/
+
 # Create a user with id 1000 to avoid premission problem when mount host's directory into container
 # Install openssl to enable HTTPS support in wget.
 RUN set -ex \
@@ -30,6 +33,11 @@ RUN set -ex \
   && mkdir -p /home/ubuntu \
   && useradd -c "ubuntu user" --home-dir /home/ubuntu --shell /bin/bash -g ubuntu -m --uid 1000 ubuntu && chown -R ubuntu:ubuntu /home/ubuntu \
   && usermod -a -G root ubuntu \
+  && echo "if [ -f ~/.bashrc ]; then . ~/.bashrc; fi" | tee -a /root/.bash_profile \
+  && cp /root/.profile /home/ubuntu/.profile \
+  && cp /root/.bashrc /home/ubuntu/.bashrc \
+  && cp /root/.bash_profile /home/ubuntu/.bash_profile \
+  && chown -R 1000:1000 /home/ubuntu \
   && echo "ubuntu ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/ubuntu \
   && chmod 0440 /etc/sudoers.d/ubuntu
 
@@ -41,7 +49,7 @@ ENV HOME=/home/ubuntu \
 	USER=ubuntu
 
 
-COPY --chown=ubuntu:ubuntu docker /
+COPY --chown=ubuntu:ubuntu docker/home/ubuntu /home/ubuntu/
 
 # see: https://github.com/NixOS/docker/blob/master/Dockerfile
 # see: https://github.com/nix-community/docker-nix/blob/master/Dockerfile

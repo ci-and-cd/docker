@@ -5,6 +5,7 @@
 !/.gitignore
 !/etc/profile
 !/home/ubuntu/.gitignore
+!/root/.bashrc
 # etc...
 
 # ...even if they are in subdirectories
